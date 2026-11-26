@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A surprise for you</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Great+Vibes&family=Patrick+Hand&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: sweet, playful, a little dramatic — a birthday note from someone who adores her
+   IDEA: a pink graph-paper scrapbook page that flips to a new surprise with every tap
+   PICTURE: her cat stickers, an envelope, a polaroid string, a gift box, a bear hug
+   COLOUR and TYPE: cream grid, magenta waves, rose pills; Luckiest Guy shouts, Great Vibes whispers
+   LAYOUT: one centred scene per screen, waves bleeding off the edges */
+:root{color-scheme:light;--cream:#fff8f2;--grid:#f3dcd6;--mag:#d6246e;--mag2:#f04f8f;--rose:#e2557f;--ink:#c2185b;--soft:#b05570}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--cream);color:var(--ink);font:18px/1.4 "Patrick Hand",system-ui,sans-serif;overflow:hidden}
+.bg{position:fixed;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:34px 34px;background-color:var(--cream)}
+.waves{position:fixed;inset:0;pointer-events:none}
+.waves svg{position:absolute}
+.w-left{left:0;top:0;height:100%;width:clamp(90px,18vw,260px)}
+.w-tr{right:0;top:0;width:clamp(90px,16vw,230px)}
+.w-br{right:0;bottom:0;width:clamp(150px,30vw,440px)}
+.page{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px 20px;text-align:center;opacity:0;visibility:hidden;transform:scale(.96);transition:opacity .45s,transform .45s,visibility .45s}
+.page.on{opacity:1;visibility:visible;transform:none}
+.sticker{width:clamp(150px,26vh,250px);filter:drop-shadow(0 8px 14px rgba(150,30,70,.18));animation:bob 3s ease-in-out infinite}
+.round{border-radius:50%;border:7px solid #fff;aspect-ratio:1;object-fit:cover}
+@keyframes bob{50%{transform:translateY(-8px) rotate(-2deg)}}
+.big{font-family:"Luckiest Guy",cursive;color:var(--mag);font-size:clamp(46px,9vw,96px);line-height:1;margin:0;letter-spacing:1px;text-shadow:0 3px 0 #f7b8cd}
+.big.sm{font-size:clamp(32px,6vw,62px)}
+.script{font-family:"Great Vibes",cursive;color:var(--soft);font-size:clamp(30px,5vw,48px);line-height:1.1;margin:0}
+.script.dark{color:var(--ink);font-family:"Dancing Script",cursive;font-weight:700}
+.note{font-family:"Luckiest Guy",cursive;color:#d0577f;font-size:clamp(15px,2.2vw,20px);letter-spacing:1px;margin:0}
+.row{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+.pill{font:700 clamp(24px,3.4vw,32px) "Dancing Script",cursive;color:#fff;background:var(--rose);border:0;border-radius:999px;padding:6px 34px 10px;min-height:52px;cursor:pointer;box-shadow:0 5px 0 #b83563,0 10px 18px rgba(184,53,99,.25);text-decoration:underline;text-underline-offset:4px;transition:transform .15s}
+.pill:hover{transform:translateY(-2px) scale(1.04)}
+.pill:active{transform:translateY(3px);box-shadow:0 2px 0 #b83563}
+.pill:focus-visible,.tap:focus-visible{outline:3px dashed var(--mag);outline-offset:4px}
+.corner{position:fixed;right:max(4vw,18px);bottom:max(4vh,18px);z-index:3}
+.tap{background:none;border:0;cursor:pointer;font:clamp(26px,4vw,40px) "Great Vibes",cursive;color:var(--soft);text-decoration:underline;padding:6px 10px}
+.corner .tap{color:#fff;font-family:"Dancing Script",cursive;font-weight:700}
+/* envelope */
+.env{position:relative;width:min(78vw,380px);aspect-ratio:3/2;cursor:pointer;margin-top:40px}
+.env .back{position:absolute;inset:0;background:linear-gradient(160deg,#f9b9cf,#f08db0);border-radius:10px;box-shadow:0 16px 30px rgba(200,50,100,.25)}
+.env .letter{position:absolute;left:7%;right:7%;bottom:8%;height:88%;background:#fffdf9;border-radius:6px;padding:16px 18px;font:clamp(14px,2.2vw,18px)/1.45 "Patrick Hand",sans-serif;color:#8a4a5e;box-shadow:0 4px 12px rgba(0,0,0,.08);transition:transform .9s .35s cubic-bezier(.3,1.3,.5,1),height .9s .35s;overflow:hidden}
+.env .front{position:absolute;inset:0;background:linear-gradient(200deg,#fcc6d8,#f39bbb);clip-path:polygon(0 0,50% 52%,100% 0,100% 100%,0 100%);border-radius:10px}
+.env .flap{position:absolute;left:0;right:0;top:0;height:56%;background:linear-gradient(180deg,#f7a9c4,#f28fb2);clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;transition:transform .6s;z-index:2}
+.env .bow{position:absolute;left:50%;top:44%;width:34%;transform:translate(-50%,-50%);z-index:3;transition:opacity .3s}
+.env.open .flap{transform:rotateX(180deg);z-index:0}
+.env.open .bow{opacity:0}
+.env.open .letter{transform:translateY(-62%);height:118%}
+.lock{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);display:flex;gap:2px;z-index:4;opacity:0;transition:opacity .5s 1.2s}
+.env.open .lock{opacity:1}
+.peek{position:fixed;left:max(14vw,70px);bottom:18vh;width:clamp(90px,14vw,140px);transform:translateX(-160%) rotate(-20deg);transition:transform .8s 1.3s cubic-bezier(.3,1.4,.5,1);z-index:2}
+.peek.in{transform:rotate(8deg)}
+.hint{opacity:0;transition:opacity .4s 1.6s}.hint.in{opacity:1}
+.paper{position:fixed;left:50%;top:50%;width:min(92vw,600px);max-height:80vh;overflow-y:auto;transform:translate(-50%,-40%) scale(.9);opacity:0;visibility:hidden;transition:all .7s cubic-bezier(.3,1.3,.5,1);z-index:6;background:#fffdf9;background-image:linear-gradient(#f6dfe6 1px,transparent 1px);background-size:100% 38px;background-position:0 30px;border-radius:12px;padding:34px clamp(22px,5vw,44px) 30px;box-shadow:0 24px 60px rgba(150,20,70,.3);text-align:left;color:#7a3550;font:clamp(19px,2.6vw,23px)/38px "Patrick Hand",sans-serif}
+.page:not(.on) .paper{visibility:hidden!important;opacity:0!important}
+.paper.in{opacity:1;visibility:visible;transform:translate(-50%,-50%)}
+.paper::before{content:"";position:absolute;left:50%;top:-14px;width:90px;height:28px;background:rgba(244,143,177,.55);transform:translateX(-50%) rotate(-3deg)}
+.paper h2{font:700 clamp(32px,5vw,44px)/1.1 "Dancing Script",cursive;color:var(--mag);margin:0 0 10px}
+.paper p{margin:0 0 14px}
+.paper .sign{font:700 clamp(26px,4vw,34px)/1.2 "Dancing Script",cursive;color:var(--mag);text-align:right;margin-top:8px}
+.paper .tap{display:block;margin:6px auto 0;text-decoration:underline;color:var(--rose)}
+.env.done{opacity:0;transform:translateY(40px) scale(.85);transition:all .6s}
+/* love */
+#love{background:linear-gradient(160deg,#c2185b,#e9407e 55%,#f472b6);color:#fff}
+.string{position:relative;width:min(92vw,820px);height:clamp(190px,34vh,300px)}
+.string svg.rope{position:absolute;inset:0 0 auto;width:100%;height:60px}
+.pol{position:absolute;top:22px;width:27%;background:#fff;padding:7px 7px 30px;box-shadow:0 10px 22px rgba(80,0,30,.35);transform-origin:top center;animation:sway 4s ease-in-out infinite}
+.pol img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#fde4ee}
+.pol::before{content:"";position:absolute;top:-12px;left:50%;width:12px;height:22px;background:#d9b38c;border-radius:3px;transform:translateX(-50%)}
+.pol::after{content:"♥";position:absolute;left:10px;bottom:4px;color:var(--mag);font-size:16px}
+.pol:nth-child(2){left:4%;transform:rotate(-7deg)}
+.pol:nth-child(3){left:36.5%;top:34px;animation-delay:-1.3s}
+.pol:nth-child(4){right:4%;transform:rotate(6deg);animation-delay:-2.6s}
+@keyframes sway{50%{rotate:3deg}}
+.puffy{font-family:"Luckiest Guy",cursive;font-size:clamp(52px,11vw,120px);margin:0;color:#ffd3e2;-webkit-text-stroke:3px #fff;text-shadow:0 6px 0 #ff9cbf,0 12px 22px rgba(120,0,40,.35);line-height:1}
+#love .script{color:#fff;font-family:"Dancing Script",cursive;font-weight:600;font-size:clamp(22px,3.4vw,34px);min-height:1.3em}
+.cake{position:fixed;left:max(4vw,14px);bottom:max(4vh,14px);width:clamp(70px,11vw,120px)}
+#love .corner .tap{font-size:clamp(22px,3vw,30px)}
+.gift-ico{width:clamp(56px,8vw,80px);display:block;margin:0 auto -6px}
+/* gift */
+.gift{position:relative;width:clamp(170px,30vh,250px);aspect-ratio:1;cursor:pointer;margin-top:28px;border:0;background:none;padding:0}
+.gift .box{position:absolute;left:6%;right:6%;bottom:0;height:68%;background:linear-gradient(160deg,#f7a1b8,#e2557f);border-radius:8px;box-shadow:0 14px 26px rgba(180,40,90,.3)}
+.gift .lid{position:absolute;left:0;right:0;top:20%;height:20%;background:linear-gradient(160deg,#f9b3c6,#ea6a91);border-radius:8px;transition:transform .7s cubic-bezier(.3,1.5,.5,1);z-index:2}
+.gift .rib{position:absolute;left:50%;width:16%;transform:translateX(-50%);top:0;bottom:0;background:#fbe3ea}
+.gift .knot{position:absolute;left:50%;top:-2%;width:64%;transform:translateX(-50%);z-index:3;transition:transform .7s cubic-bezier(.3,1.5,.5,1)}
+.gift.wiggle{animation:wig .9s ease-in-out infinite}
+@keyframes wig{0%,60%,100%{rotate:0deg}70%{rotate:-6deg}80%{rotate:6deg}90%{rotate:-3deg}}
+.gift.open{animation:none}
+.gift.open .lid{transform:translateY(-120%) rotate(-18deg)}
+.gift.open .knot{transform:translate(-50%,-190%) rotate(-18deg)}
+.arrow{display:flex;align-items:center;gap:6px;margin-top:-6px}
+/* hug */
+.hug{width:clamp(200px,40vh,330px);border-radius:28px;mix-blend-mode:multiply}
+.bouquet{position:fixed;right:max(5vw,16px);bottom:max(5vh,14px);width:clamp(100px,15vw,170px);z-index:3}
+.heart{position:fixed;bottom:-40px;font-size:24px;color:var(--mag2);animation:rise linear forwards;pointer-events:none;z-index:5}
+@keyframes rise{to{transform:translateY(-115vh) rotate(30deg);opacity:0}}
+.shake{animation:shake .5s}
+@keyframes shake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+@media(max-width:600px){.w-left{width:70px}.corner{bottom:14px;right:12px}.peek{left:8px;bottom:12vh}.cake{width:62px}.bouquet{width:92px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="waves" aria-hidden="true">
+  <svg class="w-left" viewBox="0 0 200 800" preserveAspectRatio="none"><path d="M0 0H70C150 120 40 230 110 360S200 600 90 700 40 790 60 800H0Z" fill="#d6246e"/><path d="M0 0H30C90 140 10 260 60 380S120 620 30 800H0Z" fill="#b0124f" opacity=".5"/></svg>
+  <svg class="w-tr" viewBox="0 0 200 160"><path d="M60 0H200V150C170 120 150 60 60 0Z" fill="#d6246e"/></svg>
+  <svg class="w-br" viewBox="0 0 400 220"><path d="M400 0V220H0C90 210 160 170 230 120S340 20 400 0Z" fill="#d6246e"/><path d="M400 60V220H120C220 200 300 140 400 60Z" fill="#f04f8f" opacity=".75"/></svg>
+</div>
+
+<section class="page on" id="hey">
+  <img class="sticker" src="smile.png" alt="Smiling cat with a pink bow">
+  <h1 class="big">HEY!!</h1>
+  <p class="script dark">I made something for you</p>
+  <p class="script">Do you want to see?</p>
+  <div class="row"><button class="pill" data-go="good">Yes</button><button class="pill" id="noBtn" data-go="dare">No</button></div>
+</section>
+
+<section class="page" id="dare">
+  <img class="sticker" src="angry.png" alt="Angry cat">
+  <h1 class="big sm">HOW DARE YOU</h1>
+  <button class="pill" data-go="hey">Go back</button>
+</section>
+
+<section class="page" id="good">
+  <img class="sticker" src="smile.png" alt="Happy cat">
+  <p class="script dark" style="font-size:clamp(34px,6vw,58px)">That's a good Gurlll <span aria-hidden="true">💋</span></p>
+  <button class="pill" data-go="bday">Click</button>
+</section>
+
+<section class="page" id="bday">
+  <img class="sticker" src="bday.png" alt="Cat with a party hat and a cake">
+  <h1 class="big sm">HAPPY BIRTHDAY BBG <span style="color:var(--mag2)">♥</span></h1>
+  <p class="note">You are my favorite notification ♡</p>
+  <p class="note">Stay cute, stay happy, stay mine ♡</p>
+  <div class="corner"><button class="tap" data-go="letter">Next</button></div>
+</section>
+
+<section class="page" id="letter">
+  <div class="env" id="env" role="button" tabindex="0" aria-label="Open the envelope">
+    <div class="back"></div>
+    <div class="letter" style="font-family:'Dancing Script',cursive;font-size:22px;color:var(--mag)">For you ♡</div>
+    <div class="front"></div>
+    <div class="flap"></div>
+    <svg class="bow" viewBox="0 0 120 70" aria-hidden="true"><path d="M60 35C40 5 8 4 6 20s30 22 54 15C80 42 112 36 114 20S80 5 60 35Z" fill="#e2557f"/><path d="M60 35 38 68M60 35l22 33" stroke="#e2557f" stroke-width="6" stroke-linecap="round"/><circle cx="60" cy="35" r="8" fill="#c73d68"/></svg>
+    <div class="lock" aria-hidden="true">
+      <svg width="54" height="50" viewBox="0 0 54 50"><path d="M27 48C8 34 2 24 2 15A12 12 0 0 1 27 9a12 12 0 0 1 25 6c0 9-6 19-25 33Z" fill="#f6c46a" stroke="#c9923a" stroke-width="3"/><path d="M27 40C14 30 10 23 10 16a7 7 0 0 1 17-3 7 7 0 0 1 17 3c0 7-4 14-17 24Z" fill="#f48fb1"/></svg>
+      <svg width="54" height="50" viewBox="0 0 54 50"><path d="M27 48C8 34 2 24 2 15A12 12 0 0 1 27 9a12 12 0 0 1 25 6c0 9-6 19-25 33Z" fill="#f6c46a" stroke="#c9923a" stroke-width="3"/><path d="M27 40C14 30 10 23 10 16a7 7 0 0 1 17-3 7 7 0 0 1 17 3c0 7-4 14-17 24Z" fill="#f48fb1"/></svg>
+    </div>
+  </div>
+  <p class="script hint in" id="tapOpen" style="margin-top:34px">Tap here to open</p>
+  <article class="paper" id="paper" aria-label="Birthday letter">
+    <h2>Hey you,</h2>
+    <p>Okay, I'm not great at saying this stuff out loud, so I'm writing it down instead. Please don't laugh at me.</p>
+    <p>Happy birthday. Honestly? I'm just really, really glad you were born. You make ordinary days feel like something worth remembering, and I don't think you even realise you do it.</p>
+    <p>Your laugh. Your random voice notes. The way you get excited over the tiniest things. The way you somehow know something's wrong with me before I've said a single word. I notice all of it, even when I act like I don't.</p>
+    <p>I know some days get heavy. So if you ever feel unseen or unloved, come back and read this again. You are seen. You are heard. You are loved, on your good days and your messy ones, no matter what. My love for you doesn't run out. It just keeps going.</p>
+    <p>I made this silly little website because a normal "hbd" text felt way too small for you. You deserve the whole internet, but this is what I could build. Every page of it is for you.</p>
+    <p>Thank you for being you. Stay cute, stay happy, stay mine.</p>
+    <p class="sign">Happy birthday, bbg ♡<br>Always yours</p>
+    <button class="tap" data-go="love">Keep going ♡</button>
+  </article>
+  <img class="peek" id="peek" src="bday.png" alt="">
+</section>
+
+<section class="page" id="love">
+  <div class="string">
+    <svg class="rope" viewBox="0 0 800 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6Q400 60 800 6" stroke="#fff" stroke-width="3" fill="none"/></svg>
+    <div class="pol"><img src="p1.jpg" alt="Her"></div>
+    <div class="pol"><img src="p2.jpg" alt="Us"></div>
+    <div class="pol"><img src="p3.jpg" alt="Us on the bike"></div>
+  </div>
+  <h1 class="puffy">I LOVE YOU</h1>
+  <p class="script" id="type"></p>
+  <svg class="cake" viewBox="0 0 100 100" aria-hidden="true"><rect x="12" y="52" width="76" height="40" rx="6" fill="#fff"/><rect x="22" y="30" width="56" height="26" rx="5" fill="#fff"/><path d="M12 62q9 8 19 0t19 0 19 0 19 0" stroke="#f8bbd0" stroke-width="5" fill="none"/><rect x="34" y="14" width="5" height="16" fill="#f8bbd0"/><rect x="48" y="12" width="5" height="18" fill="#f8bbd0"/><rect x="62" y="14" width="5" height="16" fill="#f8bbd0"/><circle cx="36" cy="10" r="3" fill="#ffe082"/><circle cx="50" cy="8" r="3" fill="#ffe082"/><circle cx="64" cy="10" r="3" fill="#ffe082"/></svg>
+  <div class="corner"><button class="tap" data-go="gift"><svg class="gift-ico" viewBox="0 0 80 80" aria-hidden="true"><rect x="10" y="34" width="60" height="40" rx="4" fill="#fff"/><rect x="6" y="24" width="68" height="14" rx="4" fill="#fde4ee"/><rect x="36" y="24" width="8" height="50" fill="#f48fb1"/><path d="M40 24C30 8 16 10 20 20s14 4 20 4c6 0 16 6 20-4s-10-12-20 4Z" fill="#f48fb1"/></svg>Click here</button></div>
+</section>
+
+<section class="page" id="gift">
+  <p class="script dark" style="font-size:clamp(34px,6vw,60px)">Here's a surprise for you!!!</p>
+  <button class="gift wiggle" id="giftBox" aria-label="Open the gift">
+    <div class="box"><div class="rib"></div></div>
+    <div class="lid"><div class="rib"></div></div>
+    <svg class="knot" viewBox="0 0 120 70" aria-hidden="true"><path d="M60 50C36 6 4 8 8 28s34 24 52 22C78 52 116 48 112 28S84 6 60 50Z" fill="#d93b6c"/><circle cx="60" cy="50" r="10" fill="#b82a58"/></svg>
+  </button>
+  <div class="arrow"><svg width="44" height="30" viewBox="0 0 44 30" aria-hidden="true"><path d="M40 26C30 26 12 22 6 6m0 0 10 4M6 6l-2 10" stroke="#b05570" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg><span class="tap" style="padding:0;text-decoration:none">Tap here</span></div>
+</section>
+
+<section class="page" id="hug">
+  <p class="script dark" style="font-size:clamp(34px,6vw,60px)">Here is virtual hug for you</p>
+  <img class="hug" src="hug.gif" alt="Two bears hugging">
+  <button class="pill" data-go="hey" style="font-size:22px">Watch again ♡</button>
+  <svg class="bouquet" viewBox="0 0 120 140" aria-hidden="true"><path d="M40 70 60 135 80 70Z" fill="#f6d77a"/><path d="M40 70 60 135 48 72Z" fill="#eec25a"/><path d="M60 80 30 50M60 80 90 48M60 80V40" stroke="#6aa84f" stroke-width="4"/><g fill="#f26b3a"><circle cx="30" cy="44" r="16"/><circle cx="90" cy="42" r="16"/><circle cx="60" cy="30" r="18"/></g><g fill="#e0452a"><circle cx="30" cy="44" r="7"/><circle cx="90" cy="42" r="7"/><circle cx="60" cy="30" r="8"/></g><rect x="66" y="84" width="40" height="22" rx="3" fill="#fff8e1" transform="rotate(-18 86 95)"/><text x="68" y="99" font-size="7" fill="#d6246e" font-family="Patrick Hand" transform="rotate(-18 86 95)">Happy Birthday</text></svg>
+</section>
+
+<script>
+{
+const pages=[...document.querySelectorAll('.page')];
+const go=id=>{pages.forEach(p=>p.classList.toggle('on',p.id===id));enter(id)};
+const env=document.getElementById('env'),peek=document.getElementById('peek'),tapOpen=document.getElementById('tapOpen');
+const box=document.getElementById('giftBox'),typeEl=document.getElementById('type');
+let typer;
+function hearts(n){for(let i=0;i<n;i++){const h=document.createElement('span');h.className='heart';h.textContent=['♥','♡','❤'][i%3];h.style.left=Math.random()*100+'vw';h.style.fontSize=16+Math.random()*26+'px';h.style.animationDuration=3+Math.random()*3+'s';h.style.animationDelay=Math.random()*1.5+'s';document.body.appendChild(h);setTimeout(()=>h.remove(),8000)}}
+function enter(id){
+  if(id==='letter'){env.classList.remove('open','done');paper.classList.remove('in');peek.classList.remove('in');tapOpen.classList.add('in')}
+  if(id==='love'){clearInterval(typer);const t="You don't know how much you mean to me";let i=0;typeEl.textContent='';typer=setInterval(()=>{typeEl.textContent=t.slice(0,++i);if(i>=t.length)clearInterval(typer)},70);hearts(14)}
+  if(id==='gift'){box.classList.remove('open');box.classList.add('wiggle')}
+  if(id==='hug'||id==='bday')hearts(22)
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)go(b.dataset.go)});
+document.getElementById('noBtn').addEventListener('click',()=>{const d=document.getElementById('dare');d.classList.remove('shake');void d.offsetWidth;d.classList.add('shake')});
+const paper=document.getElementById('paper');
+const openEnv=()=>{if(env.classList.contains('open'))return;env.classList.add('open');tapOpen.classList.remove('in');peek.classList.add('in');setTimeout(()=>{env.classList.add('done');paper.scrollTop=0;paper.classList.add('in');hearts(10)},1500)};
+env.addEventListener('click',openEnv);
+env.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openEnv()}});
+box.addEventListener('click',()=>{if(box.classList.contains('open'))return;box.classList.remove('wiggle');box.classList.add('open');hearts(18);setTimeout(()=>go('hug'),1400)});
+}
+</script>
+</body>
+</html>
